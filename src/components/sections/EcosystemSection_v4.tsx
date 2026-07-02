@@ -85,10 +85,12 @@ function OrbitalDiagram() {
     const angle = ((index / total) * 360 + rotationAngle) % 360;
     const radius = 220;
     const radian = (angle * Math.PI) / 180;
-    const x = radius * Math.cos(radian);
-    const y = radius * Math.sin(radian);
+    const x = Number((radius * Math.cos(radian)).toFixed(3));
+    const y = Number((radius * Math.sin(radian)).toFixed(3));
     const zIndex = Math.round(100 + 50 * Math.cos(radian));
-    const opacity = Math.max(0.3, Math.min(1, 0.3 + 0.7 * ((1 + Math.sin(radian)) / 2)));
+    const opacity = Number(
+      Math.max(0.3, Math.min(1, 0.3 + 0.7 * ((1 + Math.sin(radian)) / 2))).toFixed(4)
+    );
     return { x, y, angle, zIndex, opacity };
   };
 

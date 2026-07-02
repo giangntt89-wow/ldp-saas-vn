@@ -42,7 +42,7 @@ next-env.d.ts
 
 # large files / exports
 *.zip
-serveo_url.txt
+serveo_url*.txt
 
 # claude/agent internal files
 .claude/
