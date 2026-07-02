@@ -32,7 +32,7 @@ export default function TrustSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   
   return (
-    <SectionWrapper id="trust" className="bg-slate-900 pt-20">
+    <SectionWrapper id="trust" className="bg-[#EEF2FF] pt-20">
       <div ref={sectionRef}>
         <motion.div
           variants={containerVariants}
@@ -42,13 +42,13 @@ export default function TrustSection() {
         >
 
         <motion.div variants={itemVariants} className="text-center mb-14 relative z-10">
-          <p className="text-blue-400 text-sm font-semibold uppercase tracking-widest mb-4">
+          <p className="text-blue-600 text-sm font-semibold uppercase tracking-widest mb-4">
             Được Tin Chọn Bởi Các Doanh Nghiệp Dẫn Đầu
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white">
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-800">
             Nền Tảng Được Tin Chọn Bởi Các Doanh Nghiệp Dẫn Đầu
           </h2>
-          <p className="mt-4 text-slate-400 max-w-2xl mx-auto">
+          <p className="mt-4 text-slate-500 max-w-2xl mx-auto">
             Hơn 20 năm đồng hành cùng sự tăng trưởng bền vững của các chuỗi phân phối quy mô lớn tại Châu Á.
           </p>
         </motion.div>
@@ -57,8 +57,8 @@ export default function TrustSection() {
         <motion.div variants={itemVariants} className="grid grid-cols-3 gap-8 mb-16 max-w-3xl mx-auto relative z-10">
           {metrics.map((m) => (
             <div key={m.label} className="text-center">
-              <p className="text-4xl sm:text-5xl font-bold text-white">{m.value}</p>
-              <p className="text-slate-400 text-sm mt-2">{m.label}</p>
+              <p className="text-4xl sm:text-5xl font-bold text-blue-700">{m.value}</p>
+              <p className="text-slate-500 text-sm mt-2">{m.label}</p>
             </div>
           ))}
         </motion.div>

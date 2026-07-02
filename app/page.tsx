@@ -6,7 +6,7 @@ import Header from "@/src/components/Header";
 import HeroSection from "@/src/components/sections/HeroSection";
 import LogicSection from "@/src/components/sections/LogicSection";
 import TrustSection from "@/src/components/sections/TrustSection";
-import EcosystemSection from "@/src/components/sections/EcosystemSection";
+import EcosystemSection_v4 from "@/src/components/sections/EcosystemSection_v4";
 import MockupSection from "@/src/components/sections/MockupSection";
 import AISection from "@/src/components/sections/AISection";
 import TestimonialsSection from "@/src/components/sections/TestimonialsSection";
@@ -42,7 +42,7 @@ export default function Page() {
         <HeroSection />
         <LogicSection />
         <TrustSection />
-        <EcosystemSection />
+        <EcosystemSection_v4 />
         <MockupSection />
         <AISection />
         <TestimonialsSection />
