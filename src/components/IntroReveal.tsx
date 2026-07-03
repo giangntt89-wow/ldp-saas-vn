@@ -3,38 +3,42 @@
 import { motion } from 'framer-motion';
 
 /* ─────────────────────────────────────────────────────────────────
-   SVG Supply-Chain Diagram — Revised Layout
+   SVG Supply-Chain Diagram — Horizontal Flow Layout
+   (redone to match the reference hero diagram in ldp-saas-sea: a single
+   straight row Manufacture → Distributor → Retail → Consumer, with two
+   feedback loops arcing back to Manufacture above the row, and an O2O
+   loop arcing between Consumer and Retail below the row)
 
-   ViewBox: 0 0 820 600
-   
-   Node positions (center of 100×100 box):
-     Manufacture  (M):  cx=140, cy=140   → box x=90,  y=90,  w=100, h=100
-     Distributor  (D):  cx=140, cy=460   → box x=90,  y=410, w=100, h=100
-     Retail Store (R):  cx=480, cy=300   → box x=430, y=250, w=100, h=100
-     Consumer     (C):  cx=700, cy=300   → box x=650, y=250, w=100, h=100
+   ViewBox: 0 -50 920 360
 
-   Flow paths (solid animated):
-     Path 1 (forward): M → D  (Manufacture ↓ Distributor): M140,190 V410
-     Path 2 (forward): D → R  (Distributor → Retail):      M190,460 H430 A16,16 0 0,0 446,444 V350
-     Path 5 (consumer → retail): C→R straight:             M650,300 H530
+   Node positions (center of 100×100 box, all on one row at cy=150):
+     Manufacture  (M):  cx=130   → box x=80,  y=100, w=100, h=100
+     Distributor  (D):  cx=360   → box x=310, y=100, w=100, h=100
+     Retail Store (R):  cx=590   → box x=540, y=100, w=100, h=100
+     Consumer     (C):  cx=820   → box x=770, y=100, w=100, h=100
 
-   Dashed return paths:
-     Path 3 (nRetail feedback): R → M  straight then up:   M480,250 V156 A16,16 0 0,0 464,140 H190
-       BUT user wants straight lines only: M480,250 V170 H190 V190 (L-shape using 90° turns)
-     Path 4 (1CX feedback):     C → M  straight then across: horizontal then vertical
-       M700,250 V70 H140 V90  (go up then left then down — all right-angles)
+   Flow paths (solid animated, straight horizontal segments):
+     M → D : x180 → x310
+     D → R : x410 → x540
+     R → C : x640 → x770
 
-   Product badges (no product names — just small icon-like pills):
-     eSales Cloud DMS  → below Manufacture:          x≈140, y≈215
-     Executive 360     → also below Manufacture:     x≈140, y≈240 (second badge stacked)
-     eSales SFA        → midpoint Dist→Retail line:  midpoint of path 2
-     nRetail           → midpoint R→M path (dashed): midpoint of dashed path 3
-     1CX               → midpoint C→M path (dashed): midpoint of dashed path 4
+   Feedback loops (dashed, arcing above the row back into Manufacture):
+     nRetail loop: Retail top   → rail y=34  → Manufacture top
+     1CX loop:     Consumer top → rail y=-26 → Manufacture top
 
+   O2O loop (dashed, arcing below the row, Consumer ↔ Retail — "Online → In-store"):
+     Consumer bottom → rail y=240 → Retail bottom
+
+   Product badges:
+     eSales Cloud DMS / Executive 360 → stacked below Manufacture
+     eSales SFA                       → below the Distributor→Retail line
+     nRetail                          → on the nRetail feedback rail
+     1CX                              → on the 1CX feedback rail
+     O2O                              → on the O2O rail
    ─────────────────────────────────────────────────────────────────── */
 
 const SupplyChainDiagram = () => (
-  <svg className="hero-svg" viewBox="0 0 820 600" xmlns="http://www.w3.org/2000/svg">
+  <svg className="hero-svg" viewBox="0 -50 920 372" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stopColor="#0066FF" stopOpacity=".7" />
@@ -64,76 +68,79 @@ const SupplyChainDiagram = () => (
       <filter id="dG"><feGaussianBlur stdDeviation="4" /></filter>
 
       {/* Motion paths for animated dots */}
-      {/* Path 1: Manufacture ↓ Distributor */}
-      <path id="mp1" d="M140,190 L140,410" />
-      {/* Path 2: Distributor → Retail Store (corner turn) */}
-      <path id="mp2" d="M190,460 L430,460 A16,16 0 0,0 446,444 L446,350" />
-      {/* Path 5: Consumer → Retail Store (straight horizontal) */}
-      <path id="mp5" d="M650,300 L530,300" />
+      <path id="mp1" d="M180,150 L310,150" />
+      <path id="mp2" d="M410,150 L540,150" />
+      <path id="mp3" d="M640,150 L770,150" />
+      <path id="mpNR" d="M590,100 V50 Q590,34 574,34 H160 Q144,34 144,50 V100" />
+      <path id="mp1cx" d="M820,100 V-10 Q820,-26 804,-26 H132 Q116,-26 116,-10 V100" />
+      <path id="mpO2O" d="M820,200 V232 Q820,248 804,248 H621 Q605,248 605,232 V200" />
+      <path id="mpMfg" d="M130,200 V273" />
+      <path id="mpSFA" d="M360,200 V232 Q360,248 376,248 H559 Q575,248 575,232 V200" />
     </defs>
 
     {/* Decorative rings */}
-    <circle cx="400" cy="300" r="290" fill="none" stroke="rgba(0,102,255,.03)" strokeWidth="1" />
-    <circle cx="400" cy="300" r="200" fill="none" stroke="rgba(0,180,216,.02)" strokeWidth="1" strokeDasharray="4 8" />
+    <circle cx="475" cy="150" r="280" fill="none" stroke="rgba(0,102,255,.03)" strokeWidth="1" />
+    <circle cx="475" cy="150" r="190" fill="none" stroke="rgba(0,180,216,.02)" strokeWidth="1" strokeDasharray="4 8" />
 
     {/* ════════ BASE LINES (subtle, always visible) ════════ */}
 
-    {/* Base 1: Manufacture ↓ Distributor (solid) */}
-    <path d="M140,190 V410"
-          stroke="#0066FF" strokeOpacity=".15" strokeWidth="1.5" fill="none" />
+    {/* Base: Manufacture → Distributor → Retail → Consumer (solid) */}
+    <path d="M180,150 H310" stroke="#0066FF" strokeOpacity=".15" strokeWidth="1.5" fill="none" />
+    <path d="M410,150 H540" stroke="#0066FF" strokeOpacity=".15" strokeWidth="1.5" fill="none" />
+    <path d="M640,150 H770" stroke="#0066FF" strokeOpacity=".15" strokeWidth="1.5" fill="none" />
 
-    {/* Base 2: Distributor → Retail Store (solid, corner) */}
-    <path d="M190,460 H430 A16,16 0 0,0 446,444 V350"
-          stroke="#0066FF" strokeOpacity=".15" strokeWidth="1.5" fill="none" />
+    {/* Base: nRetail feedback loop (Retail → Manufacture, dashed) */}
+    <path d="M590,100 V50 Q590,34 574,34 H160 Q144,34 144,50 V100"
+          stroke="#0066FF" strokeOpacity=".12" strokeWidth="1.5" fill="none" strokeDasharray="5 5" />
 
-    {/* Base 3: Retail Store → Manufacture (dashed: straight right-angle lines only) */}
-    {/* Go up from Retail top (480,250) → 480,160 → left to 156 → down to Manufacture top (140,190) */}
-    <path d="M480,250 V160 H156 A16,16 0 0,0 140,176 V190"
-          stroke="#0066FF" strokeOpacity=".12" strokeWidth="1.5" fill="none"
-          strokeDasharray="5 5" />
+    {/* Base: 1CX feedback loop (Consumer → Manufacture, dashed) */}
+    <path d="M820,100 V-10 Q820,-26 804,-26 H132 Q116,-26 116,-10 V100"
+          stroke="#0066FF" strokeOpacity=".12" strokeWidth="1.5" fill="none" strokeDasharray="5 5" />
 
-    {/* Base 4: Consumer → Manufacture (dashed: straight right-angle lines only) */}
-    {/* Go up from Consumer top (700,250) → 700,80 → left to 156 → down to Manufacture top (140,90) */}
-    <path d="M700,250 V80 H156 A16,16 0 0,0 140,96 V90"
-          stroke="#0066FF" strokeOpacity=".12" strokeWidth="1.5" fill="none"
-          strokeDasharray="5 5" />
+    {/* Base: O2O loop (Consumer → Retail, dashed, "Online → In-store") */}
+    <path d="M820,200 V232 Q820,248 804,248 H621 Q605,248 605,232 V200"
+          stroke="#12B5CB" strokeOpacity=".18" strokeWidth="1.5" fill="none" strokeDasharray="5 5" />
 
-    {/* Base 5: Consumer → Retail Store (solid, straight horizontal) */}
-    <path d="M650,300 H530"
-          stroke="#0066FF" strokeOpacity=".15" strokeWidth="1.5" fill="none" />
+    {/* Base: Manufacture → solution badges below (same style as nRetail/1CX loops) */}
+    <path d="M130,200 V273"
+          stroke="#0066FF" strokeOpacity=".12" strokeWidth="1.5" fill="none" strokeDasharray="5 5" />
+
+    {/* Base: Distributor + Retail Store → eSales SFA badge below (same style as nRetail/1CX loops) */}
+    <path d="M360,200 V232 Q360,248 376,248 H559 Q575,248 575,232 V200"
+          stroke="#0066FF" strokeOpacity=".12" strokeWidth="1.5" fill="none" strokeDasharray="5 5" />
 
     {/* ════════ ANIMATED FLOW PATHS ════════ */}
 
-    {/* Path 1: Manufacture ↓ Distributor */}
-    <path d="M140,190 V410"
-          stroke="url(#pg)" strokeDasharray="8 16" strokeWidth="2" fill="none"
+    <path d="M180,150 H310" stroke="url(#pg)" strokeDasharray="8 16" strokeWidth="2" fill="none"
           style={{ animation: 'hero-flow-path 2s linear infinite' }} />
-
-    {/* Path 2: Distributor → Retail Store */}
-    <path d="M190,460 H430 A16,16 0 0,0 446,444 V350"
-          stroke="url(#pg)" strokeDasharray="8 16" strokeWidth="2" fill="none"
+    <path d="M410,150 H540" stroke="url(#pg)" strokeDasharray="8 16" strokeWidth="2" fill="none"
           style={{ animation: 'hero-flow-path 2s linear infinite 0.4s' }} />
+    <path d="M640,150 H770" stroke="url(#pg)" strokeDasharray="8 16" strokeWidth="2" fill="none"
+          style={{ animation: 'hero-flow-path 2s linear infinite 0.8s' }} />
 
-    {/* Path 3: Retail → Manufacture (dashed feedback, no animated dot) */}
-    <path d="M480,250 V160 H156 A16,16 0 0,0 140,176 V190"
-          stroke="url(#pg)" strokeDasharray="6 10" strokeWidth="1.5" fill="none"
-          strokeOpacity=".4"
+    {/* Feedback loops (dashed, slower flow) */}
+    <path d="M590,100 V50 Q590,34 574,34 H160 Q144,34 144,50 V100"
+          stroke="url(#pg)" strokeDasharray="6 10" strokeWidth="1.5" fill="none" strokeOpacity=".4"
           style={{ animation: 'hero-flow-path 3s linear infinite 0.7s' }} />
-
-    {/* Path 4: Consumer → Manufacture (dashed feedback, no animated dot) */}
-    <path d="M700,250 V80 H156 A16,16 0 0,0 140,96 V90"
-          stroke="url(#pg)" strokeDasharray="6 10" strokeWidth="1.5" fill="none"
-          strokeOpacity=".4"
+    <path d="M820,100 V-10 Q820,-26 804,-26 H132 Q116,-26 116,-10 V100"
+          stroke="url(#pg)" strokeDasharray="6 10" strokeWidth="1.5" fill="none" strokeOpacity=".4"
           style={{ animation: 'hero-flow-path 3.5s linear infinite 0.2s' }} />
+    <path d="M820,200 V232 Q820,248 804,248 H621 Q605,248 605,232 V200"
+          stroke="#12B5CB" strokeDasharray="6 10" strokeWidth="1.5" fill="none" strokeOpacity=".45"
+          style={{ animation: 'hero-flow-path 3s linear infinite 1s' }} />
 
-    {/* Path 5: Consumer → Retail Store */}
-    <path d="M650,300 H530"
-          stroke="url(#pg)" strokeDasharray="8 16" strokeWidth="2" fill="none"
-          style={{ animation: 'hero-flow-path 2s linear infinite 0.5s' }} />
+    {/* Manufacture → solution badges (animated overlay) */}
+    <path d="M130,200 V273"
+          stroke="url(#pg)" strokeDasharray="6 10" strokeWidth="1.5" fill="none" strokeOpacity=".4"
+          style={{ animation: 'hero-flow-path 3.2s linear infinite 0.3s' }} />
 
-    {/* ════════ ANIMATED DOTS (solid paths only) ════════ */}
+    {/* Distributor + Retail Store → eSales SFA badge (animated overlay) */}
+    <path d="M360,200 V232 Q360,248 376,248 H559 Q575,248 575,232 V200"
+          stroke="url(#pg)" strokeDasharray="6 10" strokeWidth="1.5" fill="none" strokeOpacity=".4"
+          style={{ animation: 'hero-flow-path 3.3s linear infinite 0.9s' }} />
 
-    {/* Dot – Path 1 */}
+    {/* ════════ ANIMATED DOTS ════════ */}
+
     <circle r="5" fill="#00B4D8" opacity=".2" filter="url(#dG)">
       <animateMotion dur="2.5s" repeatCount="indefinite"><mpath href="#mp1" /></animateMotion>
     </circle>
@@ -141,103 +148,100 @@ const SupplyChainDiagram = () => (
       <animateMotion dur="2.5s" repeatCount="indefinite"><mpath href="#mp1" /></animateMotion>
     </circle>
 
-    {/* Dot – Path 2 */}
     <circle r="5" fill="#00B4D8" opacity=".2" filter="url(#dG)">
-      <animateMotion dur="3s" repeatCount="indefinite" begin=".5s"><mpath href="#mp2" /></animateMotion>
+      <animateMotion dur="2.5s" repeatCount="indefinite" begin=".5s"><mpath href="#mp2" /></animateMotion>
     </circle>
     <circle r="2.5" fill="#00E5FF" opacity=".9">
-      <animateMotion dur="3s" repeatCount="indefinite" begin=".5s"><mpath href="#mp2" /></animateMotion>
+      <animateMotion dur="2.5s" repeatCount="indefinite" begin=".5s"><mpath href="#mp2" /></animateMotion>
     </circle>
 
-    {/* Dot – Path 5 */}
     <circle r="5" fill="#00B4D8" opacity=".2" filter="url(#dG)">
-      <animateMotion dur="2s" repeatCount="indefinite"><mpath href="#mp5" /></animateMotion>
+      <animateMotion dur="2.5s" repeatCount="indefinite" begin="1s"><mpath href="#mp3" /></animateMotion>
     </circle>
     <circle r="2.5" fill="#00E5FF" opacity=".9">
-      <animateMotion dur="2s" repeatCount="indefinite"><mpath href="#mp5" /></animateMotion>
+      <animateMotion dur="2.5s" repeatCount="indefinite" begin="1s"><mpath href="#mp3" /></animateMotion>
     </circle>
 
-    {/* ════════ PRODUCT BADGES (icon pills, no product name text) ════════ */}
+    <circle r="4" fill="#00B4D8" opacity=".55" filter="url(#dG)">
+      <animateMotion dur="9s" repeatCount="indefinite" begin=".4s"><mpath href="#mpNR" /></animateMotion>
+    </circle>
+    <circle r="4" fill="#12B5CB" opacity=".5" filter="url(#dG)">
+      <animateMotion dur="11s" repeatCount="indefinite" begin="1.6s"><mpath href="#mp1cx" /></animateMotion>
+    </circle>
+    <circle r="4" fill="#12B5CB" opacity=".55" filter="url(#dG)">
+      <animateMotion dur="8s" repeatCount="indefinite" begin=".8s"><mpath href="#mpO2O" /></animateMotion>
+    </circle>
+    <circle r="4" fill="#00B4D8" opacity=".55" filter="url(#dG)">
+      <animateMotion dur="9s" repeatCount="indefinite" begin=".3s"><mpath href="#mpMfg" /></animateMotion>
+    </circle>
+    <circle r="4" fill="#00B4D8" opacity=".5" filter="url(#dG)">
+      <animateMotion dur="10s" repeatCount="indefinite" begin="1.2s"><mpath href="#mpSFA" /></animateMotion>
+    </circle>
 
-    {/* Badge: eSales Cloud DMS — below Manufacture, left-aligned */}
+    {/* ════════ PRODUCT BADGES ════════ */}
+
+    {/* Badge: eSales Cloud DMS — below Manufacture */}
     <g filter="url(#glow)">
-      <rect x="52" y="208" width="176" height="24" rx="12"
+      <rect x="11" y="235" width="238" height="26" rx="13"
             fill="rgba(4,18,48,.92)" stroke="rgba(0,180,216,.5)" strokeWidth="1" />
-      {/* DMS icon: network/grid dots */}
-      <circle cx="68" cy="220" r="2.5" fill="#00E5FF" opacity=".9" />
-      <circle cx="75" cy="214" r="1.8" fill="#00B4D8" opacity=".7" />
-      <circle cx="75" cy="226" r="1.8" fill="#00B4D8" opacity=".7" />
-      <line x1="68" y1="220" x2="74" y2="214" stroke="#00B4D8" strokeWidth=".8" opacity=".6" />
-      <line x1="68" y1="220" x2="74" y2="226" stroke="#00B4D8" strokeWidth=".8" opacity=".6" />
-      <text x="138" y="224" textAnchor="middle"
-            fontFamily="var(--font-urbanist), sans-serif" fontSize="9.5"
+      <text x="130" y="252" textAnchor="middle"
+            fontFamily="var(--font-urbanist), sans-serif" fontSize="12.35"
             fontWeight="700" fill="#00E5FF" letterSpacing=".5">eSales Cloud DMS</text>
     </g>
 
-    {/* Badge: Executive 360 — below DMS badge */}
+    {/* Badge: Executive 360 — below DMS badge, same size as DMS badge */}
     <g filter="url(#glow)">
-      <rect x="70" y="238" width="140" height="24" rx="12"
+      <rect x="11" y="273" width="238" height="26" rx="13"
             fill="rgba(4,18,48,.92)" stroke="rgba(0,180,216,.5)" strokeWidth="1" />
-      {/* E360 icon: chart bar */}
-      <rect x="83" y="246" width="3" height="8" rx="1" fill="#00E5FF" opacity=".9" />
-      <rect x="88" y="250" width="3" height="4" rx="1" fill="#00B4D8" opacity=".7" />
-      <rect x="93" y="244" width="3" height="10" rx="1" fill="#00E5FF" opacity=".8" />
-      <text x="149" y="254" textAnchor="middle"
-            fontFamily="var(--font-urbanist), sans-serif" fontSize="9.5"
+      <text x="130" y="290" textAnchor="middle"
+            fontFamily="var(--font-urbanist), sans-serif" fontSize="12.35"
             fontWeight="700" fill="#00E5FF" letterSpacing=".5">Executive 360</text>
     </g>
 
-    {/* Badge: eSales SFA — midpoint of Dist→Retail arc, approx (310, 460) */}
+    {/* Badge: eSales SFA — below the Distributor→Retail line */}
     <g filter="url(#glow)">
-      <rect x="264" y="447" width="100" height="24" rx="12"
+      <rect x="408" y="235" width="135" height="26" rx="13"
             fill="rgba(4,18,48,.92)" stroke="rgba(0,180,216,.5)" strokeWidth="1" />
-      {/* SFA icon: person with arrow */}
-      <circle cx="278" cy="459" r="3" fill="#00B4D8" opacity=".8" />
-      <path d="M275,463 Q278,468 281,463" fill="none" stroke="#00B4D8" strokeWidth=".9" opacity=".6" />
-      <path d="M284,459 L289,459 M287,457 L289,459 L287,461" fill="none" stroke="#00E5FF" strokeWidth="1" opacity=".8" />
-      <text x="323" y="463" textAnchor="middle"
-            fontFamily="var(--font-urbanist), sans-serif" fontSize="9.5"
+      <text x="475" y="252" textAnchor="middle"
+            fontFamily="var(--font-urbanist), sans-serif" fontSize="12.35"
             fontWeight="700" fill="#00E5FF" letterSpacing=".5">eSales SFA</text>
     </g>
 
-    {/* Badge: nRetail — midpoint of dashed R→M path: approx midpoint of (480,250)→(480,160)→(156,160) */}
-    {/* Midpoint is roughly at (318, 160) */}
+    {/* Badge: nRetail — on the nRetail feedback rail */}
     <g filter="url(#glow)">
-      <rect x="274" y="149" width="88" height="24" rx="12"
-            fill="rgba(4,18,48,.92)" stroke="rgba(0,180,216,.35)" strokeWidth="1"
-            strokeDasharray="3 2" />
-      {/* nRetail icon: store */}
-      <path d="M286,161 L284,156 L300,156 L298,161" fill="none" stroke="#00B4D8" strokeWidth="1" opacity=".8" />
-      <rect x="284" y="161" width="14" height="8" rx="1" fill="rgba(0,180,216,.1)" stroke="#00B4D8" strokeWidth=".8" strokeOpacity=".5" />
-      <rect x="287" y="163" width="4" height="6" rx=".8" fill="#00B4D8" opacity=".3" />
-      <text x="340" y="165" textAnchor="middle"
-            fontFamily="var(--font-urbanist), sans-serif" fontSize="9.5"
+      <rect x="300" y="21" width="119" height="26" rx="13"
+            fill="rgba(4,18,48,.92)" stroke="rgba(0,180,216,.35)" strokeWidth="1" strokeDasharray="3 2" />
+      <text x="360" y="38" textAnchor="middle"
+            fontFamily="var(--font-urbanist), sans-serif" fontSize="12.35"
             fontWeight="700" fill="#00E5FF" letterSpacing=".5" opacity=".85">nRetail</text>
     </g>
 
-    {/* Badge: 1CX — midpoint of dashed C→M path: approx midpoint of (700,250)→(700,80)→(156,80) */}
-    {/* Midpoint is roughly at (428, 80) */}
+    {/* Badge: 1CX — on the 1CX feedback rail */}
     <g filter="url(#glow)">
-      <rect x="396" y="69" width="64" height="24" rx="12"
-            fill="rgba(4,18,48,.92)" stroke="rgba(0,180,216,.35)" strokeWidth="1"
-            strokeDasharray="3 2" />
-      {/* 1CX icon: headset/users */}
-      <circle cx="410" cy="81" r="4" fill="none" stroke="#00B4D8" strokeWidth="1" opacity=".8" />
-      <circle cx="410" cy="81" r="1.5" fill="#00B4D8" opacity=".5" />
-      <path d="M407,85 Q410,89 413,85" fill="none" stroke="#00B4D8" strokeWidth=".9" opacity=".6" />
-      <text x="443" y="85" textAnchor="middle"
-            fontFamily="var(--font-urbanist), sans-serif" fontSize="10"
+      <rect x="432" y="-39" width="86" height="26" rx="13"
+            fill="rgba(4,18,48,.92)" stroke="rgba(0,180,216,.35)" strokeWidth="1" strokeDasharray="3 2" />
+      <text x="475" y="-22" textAnchor="middle"
+            fontFamily="var(--font-urbanist), sans-serif" fontSize="13"
             fontWeight="700" fill="#00E5FF" letterSpacing=".5" opacity=".85">1CX</text>
+    </g>
+
+    {/* Badge: O2O — level with the eSales SFA badge, on the Consumer↔Retail rail ("Online → In-store") */}
+    <g filter="url(#glow)">
+      <rect x="609" y="235" width="192" height="26" rx="13"
+            fill="rgba(4,18,48,.92)" stroke="#12B5CB" strokeWidth="1" strokeDasharray="3 2" />
+      <text x="705" y="252" textAnchor="middle"
+            fontFamily="var(--font-urbanist), sans-serif" fontSize="12.35"
+            fontWeight="700" fill="#12B5CB" letterSpacing=".5">O2O · Online → In-store</text>
     </g>
 
     {/* ════════ NODES ════════ */}
 
-    {/* ▸ NHÀ SẢN XUẤT (140, 140) */}
+    {/* ▸ NHÀ SẢN XUẤT (130, 150) */}
     <g className="node-g" filter="url(#nG)">
-      <rect x="90" y="90" width="100" height="100" rx="20"
+      <rect x="80" y="100" width="100" height="100" rx="20"
             fill="url(#ng)" stroke="rgba(255,255,255,.1)" strokeWidth="1" />
       {/* Factory icon */}
-      <g transform="translate(140, 140) scale(1.15)">
+      <g transform="translate(130, 150) scale(1.15)">
         <rect x="-20" y="-11" width="40" height="22" rx="2"
               fill="rgba(0,180,216,.08)" stroke="url(#ig)" strokeWidth="1.5" />
         <polyline points="-20,-11 -13,-21 -6,-11 1,-21 8,-11 15,-21 20,-11"
@@ -256,17 +260,17 @@ const SupplyChainDiagram = () => (
         <rect x="4" y="-6" width="6" height="5" rx="1" fill="#00B4D8" opacity=".35" />
         <rect x="-4" y="1" width="8" height="10" rx="1.5" fill="#00B4D8" opacity=".12" stroke="#00B4D8" strokeWidth=".8" strokeOpacity=".3" />
       </g>
-      <text x="140" y="210" textAnchor="middle"
+      <text x="130" y="222" textAnchor="middle"
             fontFamily="var(--font-urbanist), sans-serif" fontSize="10"
             fontWeight="600" fill="rgba(255,255,255,.55)" letterSpacing="1.2">NHÀ SẢN XUẤT</text>
     </g>
 
-    {/* ▸ NHÀ PHÂN PHỐI (140, 460) */}
+    {/* ▸ NHÀ PHÂN PHỐI (360, 150) */}
     <g className="node-g" filter="url(#nG)">
-      <rect x="90" y="410" width="100" height="100" rx="20"
+      <rect x="310" y="100" width="100" height="100" rx="20"
             fill="url(#ng)" stroke="rgba(255,255,255,.1)" strokeWidth="1" />
       {/* Warehouse icon */}
-      <g transform="translate(140, 460) scale(1.15)">
+      <g transform="translate(360, 150) scale(1.15)">
         <rect x="-22" y="-13" width="44" height="24" rx="2"
               fill="rgba(0,180,216,.08)" stroke="url(#ig)" strokeWidth="1.5" />
         <path d="M-24,-13 L-18,-23 L18,-23 L24,-13"
@@ -281,17 +285,17 @@ const SupplyChainDiagram = () => (
         <rect x="7" y="1" width="5" height="5" rx=".8" fill="#00B4D8" opacity=".25" />
         <rect x="10" y="-3" width="4" height="5" rx=".8" fill="#00B4D8" opacity=".18" />
       </g>
-      <text x="140" y="530" textAnchor="middle"
+      <text x="360" y="222" textAnchor="middle"
             fontFamily="var(--font-urbanist), sans-serif" fontSize="10"
             fontWeight="600" fill="rgba(255,255,255,.55)" letterSpacing="1.2">NHÀ PHÂN PHỐI</text>
     </g>
 
-    {/* ▸ CỬA HÀNG BÁN LẺ (480, 300) */}
+    {/* ▸ CỬA HÀNG BÁN LẺ (590, 150) */}
     <g className="node-g" filter="url(#nG)">
-      <rect x="430" y="250" width="100" height="100" rx="20"
+      <rect x="540" y="100" width="100" height="100" rx="20"
             fill="url(#ng)" stroke="rgba(255,255,255,.1)" strokeWidth="1" />
       {/* Store icon */}
-      <g transform="translate(480, 300) scale(1.15)">
+      <g transform="translate(590, 150) scale(1.15)">
         <path d="M-20,-20 L-22,-10 L22,-10 L20,-20 Z"
               fill="rgba(0,102,255,.1)" stroke="url(#ig)" strokeWidth="1.4" strokeLinejoin="round" />
         <path d="M-22,-10 Q-15,-3 -8,-10 Q0,-3 8,-10 Q15,-3 22,-10"
@@ -303,17 +307,17 @@ const SupplyChainDiagram = () => (
         <rect x="-17" y="-6" width="8" height="6" rx="1.5" fill="#00B4D8" opacity=".18" />
         <rect x="9" y="-6" width="8" height="6" rx="1.5" fill="#00B4D8" opacity=".18" />
       </g>
-      <text x="480" y="370" textAnchor="middle"
+      <text x="590" y="222" textAnchor="middle"
             fontFamily="var(--font-urbanist), sans-serif" fontSize="10"
             fontWeight="600" fill="rgba(255,255,255,.55)" letterSpacing="1">CỬA HÀNG BÁN LẺ</text>
     </g>
 
-    {/* ▸ NGƯỜI TIÊU DÙNG (700, 300) */}
+    {/* ▸ NGƯỜI TIÊU DÙNG (820, 150) */}
     <g className="node-g" filter="url(#nG)">
-      <rect x="650" y="250" width="100" height="100" rx="20"
+      <rect x="770" y="100" width="100" height="100" rx="20"
             fill="url(#ng)" stroke="rgba(255,255,255,.1)" strokeWidth="1" />
       {/* Person icon */}
-      <g transform="translate(700, 300) scale(1.15)">
+      <g transform="translate(820, 150) scale(1.15)">
         <circle cx="0" cy="-15" r="9"
                 fill="rgba(0,180,216,.1)" stroke="url(#ig)" strokeWidth="1.6" />
         <path d="M-15,15 C-15,0 -9,-4 0,-4 C9,-4 15,0 15,15"
@@ -322,7 +326,7 @@ const SupplyChainDiagram = () => (
         <circle cx="3.5" cy="-16" r="1.2" fill="#00B4D8" opacity=".35" />
         <path d="M-3,-11 Q0,-8.5 3,-11" fill="none" stroke="#00B4D8" strokeWidth=".8" opacity=".22" />
       </g>
-      <text x="700" y="370" textAnchor="middle"
+      <text x="820" y="222" textAnchor="middle"
             fontFamily="var(--font-urbanist), sans-serif" fontSize="10"
             fontWeight="600" fill="rgba(255,255,255,.55)" letterSpacing="1">NGƯỜI TIÊU DÙNG</text>
     </g>
@@ -354,7 +358,7 @@ export default function IntroReveal({ onReveal }: { onReveal: () => void }) {
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
             <p className="hero-tagline">NỀN TẢNG QUẢN TRỊ PHÂN PHỐI &amp; BÁN LẺ HÀNG ĐẦU</p>
-            <h1 className="hero-headline-1">KIẾN TẠO CHUỖI<br />PHÂN PHỐI THÔNG MINH</h1>
+            <h1 className="hero-headline-1">KIẾN TẠO<br />CHUỖI PHÂN PHỐI<br />THÔNG MINH</h1>
             <h2 className="hero-headline-2">TỐI ƯU MỌI ĐIỂM CHẠM</h2>
             <p className="hero-sub-headline">Số hóa toàn diện quy trình từ nhà sản xuất đến người tiêu dùng.</p>
             <button className="hero-cta-btn" onClick={onReveal}>
