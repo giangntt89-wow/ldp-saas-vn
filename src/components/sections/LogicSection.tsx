@@ -82,6 +82,8 @@ export default function LogicSection() {
   const [dynValues, setDynValues] = useState<Record<string, string>>({});
   const [contact, setContact] = useState({ name: '', company: '', phone: '', email: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const containerVariants: import('framer-motion').Variants = {
     hidden: { opacity: 0 },
@@ -106,9 +108,26 @@ export default function LogicSection() {
     (dynamicFields[id] || []).map((f) => ({ ...f, key: `${id}-${f.placeholder}` }))
   );
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch('/api/roi-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ selectedProblems, dynValues, contact }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Gửi thông tin thất bại.');
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Đã có lỗi xảy ra, vui lòng thử lại.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -348,9 +367,14 @@ export default function LogicSection() {
                       <input required type="tel" placeholder="Số điện thoại *" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 outline-none text-sm" />
                       <input required type="email" placeholder="Email doanh nghiệp *" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 outline-none text-sm" />
                     </div>
+                    {submitError && (
+                      <p className="mt-3 text-sm text-red-600">{submitError}</p>
+                    )}
                     <div className="flex gap-3 mt-5">
-                      <button type="button" onClick={() => setStep(2)} className="cta-secondary flex-1 py-2.5 border border-slate-200 text-slate-600 text-sm font-semibold rounded-xl hover:bg-slate-50">Quay lại</button>
-                      <button type="submit" className="cta-primary flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl">Nhận báo cáo</button>
+                      <button type="button" onClick={() => setStep(2)} disabled={submitting} className="cta-secondary flex-1 py-2.5 border border-slate-200 text-slate-600 text-sm font-semibold rounded-xl hover:bg-slate-50 disabled:opacity-50">Quay lại</button>
+                      <button type="submit" disabled={submitting} className="cta-primary flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl disabled:bg-slate-300">
+                        {submitting ? 'Đang gửi...' : 'Nhận báo cáo'}
+                      </button>
                     </div>
                   </form>
                 )}

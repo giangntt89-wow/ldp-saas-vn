@@ -9,11 +9,30 @@ type Props = {
 
 export default function PopupForm({ onClose }: Props) {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', email: '', phone: '', request: '' });
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch('/api/contact-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, source: 'popup_form' }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Gửi yêu cầu thất bại.');
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Đã có lỗi xảy ra, vui lòng thử lại.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -76,11 +95,16 @@ export default function PopupForm({ onClose }: Props) {
                 onChange={(e) => setForm({ ...form, request: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition-all text-slate-700 min-h-[100px] resize-y"
               />
+              {submitError && (
+                <p className="text-red-500 text-xs text-center">{submitError}</p>
+              )}
+
               <button
                 type="submit"
-                className="cta-primary w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm"
+                disabled={submitting}
+                className="cta-primary w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-semibold rounded-xl text-sm"
               >
-                Đặt Lịch Ngay
+                {submitting ? 'Đang gửi...' : 'Đặt Lịch Ngay'}
               </button>
             </form>
             <p className="text-xs text-slate-400 mt-4 text-center leading-relaxed">

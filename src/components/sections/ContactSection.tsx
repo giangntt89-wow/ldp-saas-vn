@@ -26,8 +26,10 @@ export default function ContactSection() {
   const [form, setForm] = useState<FormState>({ name: '', email: '', phone: '', role: '', scale: '' });
   const [errors, setErrors] = useState<Errors>({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const errs = validate(form);
     if (Object.keys(errs).length > 0) {
@@ -35,7 +37,24 @@ export default function ContactSection() {
       return;
     }
     setErrors({});
-    setSubmitted(true);
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch('/api/contact-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, source: 'contact_section' }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Gửi yêu cầu thất bại.');
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Đã có lỗi xảy ra, vui lòng thử lại.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const set = (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -183,11 +202,16 @@ export default function ContactSection() {
                 </div>
               </div>
 
+              {submitError && (
+                <p className="text-red-400 text-sm text-center">{submitError}</p>
+              )}
+
               <button
                 type="submit"
-                className="cta-primary w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm tracking-wide"
+                disabled={submitting}
+                className="cta-primary w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-500 text-white font-bold rounded-xl text-sm tracking-wide"
               >
-                GỬI YÊU CẦU TƯ VẤN
+                {submitting ? 'ĐANG GỬI...' : 'GỬI YÊU CẦU TƯ VẤN'}
               </button>
             </form>
 
