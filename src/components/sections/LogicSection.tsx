@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { 
+import {
   Activity, Database, TrendingUp, ShieldCheck, PieChart,
   ShoppingCart, Map, Camera, DollarSign, Target,
   Unplug, RefreshCw, Shield, Maximize, Server,
-  MapPin, Users, Package, Store, ArrowRight
+  MapPin, Users, Package, Store, ArrowRight, Layers, X
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SectionWrapper from '@/src/components/SectionWrapper';
@@ -59,6 +59,7 @@ const problemCards = [
   { id: 'stock', icon: Package, label: 'Khủng hoảng Tồn kho', sub: 'Lệch tồn, Out-of-stock tại điểm bán' },
   { id: 'retail', icon: Store, label: 'Đứt gãy Khách lẻ', sub: 'Trải nghiệm kém, tỷ lệ rời bỏ cao' },
   { id: 'data', icon: Database, label: 'Phân mảnh Dữ liệu', sub: 'Báo cáo chậm trễ, kẹt trên Excel' },
+  { id: 'omni', icon: Layers, label: 'Đa Kênh / Đại Lý', sub: 'Khó quản lý thống nhất Online – Offline – Đại lý' },
 ];
 
 type FieldConfig = {
@@ -73,6 +74,10 @@ const dynamicFields: Record<string, FieldConfig[]> = {
   stock: [{ type: 'input', placeholder: 'Số lượng SKU:' }, { type: 'input', placeholder: 'Số Nhà phân phối / Kho:' }],
   retail: [{ type: 'input', placeholder: 'Ngân sách Trade MKT/Loyalty/năm (VNĐ):' }],
   data: [{ type: 'dropdown', placeholder: 'Hệ thống ERP/Kế toán đang dùng?', options: ['SAP', 'Oracle', 'Bravo', 'Khác', 'Chưa có'] }],
+  omni: [
+    { type: 'input', placeholder: 'Số lượng kênh bán / đại lý đang vận hành:' },
+    { type: 'dropdown', placeholder: 'Dữ liệu đơn hàng giữa các kênh đã đồng bộ chưa?', options: ['Đã đồng bộ', 'Một phần', 'Chưa đồng bộ'] },
+  ],
 };
 
 function parseNumber(value?: string): number {
@@ -161,6 +166,7 @@ export default function LogicSection() {
     stock: `${dynValues['stock-Số lượng SKU:'] || 0} SKU trên ${dynValues['stock-Số Nhà phân phối / Kho:'] || 0} kho/NPP — rủi ro lệch tồn và out-of-stock tại điểm bán, ảnh hưởng trực tiếp doanh số.`,
     retail: `Ngân sách Trade MKT/Loyalty ${formatCurrency(retailBudget)}/năm — ước tính khoảng 15% chưa được kiểm soát chặt chẽ, tương đương ${formatCurrency(retailWasteAnnual)}/năm.`,
     data: `Hệ thống ${dynValues['data-Hệ thống ERP/Kế toán đang dùng?'] || 'hiện tại'} chưa đồng bộ real-time với vận hành — báo cáo chậm trễ, khó ra quyết định kịp thời.`,
+    omni: `${dynValues['omni-Số lượng kênh bán / đại lý đang vận hành:'] || 'Nhiều'} kênh bán (Online/Offline/Đại lý) đang vận hành rời rạc — dữ liệu đơn hàng, tồn kho khó đồng bộ real-time giữa các kênh, ảnh hưởng trải nghiệm khách hàng.`,
   };
 
   return (
@@ -330,61 +336,6 @@ export default function LogicSection() {
                 Chuyên gia HQSOFT sẽ liên hệ quý khách trong thời gian sớm nhất. Chân thành cảm ơn quý khách đã tin tưởng và lựa chọn HQSOFT trên hành trình chuyển đổi số.
               </p>
             </motion.div>
-          ) : showResult ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className="rounded-3xl p-6 sm:p-8"
-              style={{ background: 'rgba(255,255,255,0.97)', boxShadow: '0 32px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.12)' }}
-            >
-              <div className="text-center mb-6">
-                <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-1">Kết Quả Sơ Bộ Dự Toán Vận Hành</h3>
-                <p className="text-slate-500 text-sm">Dựa trên thông tin bạn vừa cung cấp</p>
-              </div>
-
-              {totalWasteAnnual > 0 && (
-                <div className="text-center mb-6 py-5 rounded-2xl bg-blue-50 border border-blue-100">
-                  <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold mb-1">Ước tính thất thoát tiềm ẩn</p>
-                  <p className="text-3xl font-extrabold text-blue-700">
-                    {formatCurrency(totalWasteAnnual)}<span className="text-base font-semibold text-blue-500">/năm</span>
-                  </p>
-                </div>
-              )}
-
-              <div className="space-y-3 mb-6">
-                {selectedProblems.map((id) => {
-                  const card = problemCards.find((c) => c.id === id);
-                  if (!card) return null;
-                  const Icon = card.icon;
-                  return (
-                    <div key={id} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-                        <Icon size={14} className="text-blue-600" strokeWidth={1.5} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">{card.label}</p>
-                        <p className="text-[12px] text-slate-500 mt-0.5 leading-snug">{problemInsights[id]}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <p className="text-[11px] text-slate-400 text-center leading-relaxed mb-5">
-                * Số liệu trên mang tính ước tính sơ bộ dựa trên benchmark ngành bán lẻ/phân phối, chưa phản ánh chính xác 100% tình hình thực tế. Chuyên gia HQSOFT sẽ phân tích chi tiết và đưa ra con số cụ thể theo đặc thù doanh nghiệp bạn.
-              </p>
-
-              <button
-                onClick={() => setSubmitted(true)}
-                className="cta-primary w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm"
-              >
-                Đặt lịch tư vấn cùng chuyên gia
-              </button>
-            </motion.div>
           ) : (
             <motion.div 
               initial={{ opacity: 0, y: 40 }}
@@ -472,6 +423,75 @@ export default function LogicSection() {
         </div>
       </div>
     </div>
+
+    {showResult && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0,0,0,0.6)' }}
+        onClick={(e) => e.target === e.currentTarget && setShowResult(false)}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 sm:p-8 relative"
+        >
+          <button
+            onClick={() => setShowResult(false)}
+            className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 transition-colors"
+          >
+            <X size={20} />
+          </button>
+
+          <div className="text-center mb-6">
+            <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-1">Kết Quả Sơ Bộ Dự Toán Vận Hành</h3>
+            <p className="text-slate-500 text-sm">Dựa trên thông tin bạn vừa cung cấp</p>
+          </div>
+
+          {totalWasteAnnual > 0 && (
+            <div className="text-center mb-6 py-5 rounded-2xl bg-blue-50 border border-blue-100">
+              <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold mb-1">Ước tính thất thoát tiềm ẩn</p>
+              <p className="text-3xl font-extrabold text-blue-700">
+                {formatCurrency(totalWasteAnnual)}<span className="text-base font-semibold text-blue-500">/năm</span>
+              </p>
+            </div>
+          )}
+
+          <div className="space-y-3 mb-6">
+            {selectedProblems.map((id) => {
+              const card = problemCards.find((c) => c.id === id);
+              if (!card) return null;
+              const Icon = card.icon;
+              return (
+                <div key={id} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                  <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                    <Icon size={14} className="text-blue-600" strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-800">{card.label}</p>
+                    <p className="text-[12px] text-slate-500 mt-0.5 leading-snug">{problemInsights[id]}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="text-[11px] text-slate-400 text-center leading-relaxed mb-5">
+            * Số liệu trên mang tính ước tính sơ bộ dựa trên benchmark ngành bán lẻ/phân phối, chưa phản ánh chính xác 100% tình hình thực tế. Chuyên gia HQSOFT sẽ phân tích chi tiết và đưa ra con số cụ thể theo đặc thù doanh nghiệp bạn.
+          </p>
+
+          <button
+            onClick={() => { setShowResult(false); setSubmitted(true); }}
+            className="cta-primary w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm"
+          >
+            Đặt lịch tư vấn cùng chuyên gia
+          </button>
+        </motion.div>
+      </div>
+    )}
     </SectionWrapper>
   );
 }
