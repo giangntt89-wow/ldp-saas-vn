@@ -44,6 +44,9 @@ next-env.d.ts
 *.zip
 serveo_url*.txt
 
+# playwright MCP test artifacts
+.playwright-mcp/
+
 # claude/agent internal files
 .claude/
 .claudesignore.txt
