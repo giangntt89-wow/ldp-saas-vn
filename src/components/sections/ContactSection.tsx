@@ -102,7 +102,7 @@ export default function ContactSection() {
             </div>
             <h3 className="text-2xl font-bold text-white mb-3">Yêu cầu đã được gửi!</h3>
             <p className="text-slate-400 max-w-sm mx-auto text-sm leading-relaxed">
-              Đội ngũ chuyên gia sẽ phản hồi trong thời gian sớm nhất.
+              Chuyên gia HQSOFT sẽ liên hệ quý khách trong thời gian sớm nhất. Chân thành cảm ơn quý khách đã tin tưởng và lựa chọn HQSOFT trên hành trình chuyển đổi số.
             </p>
           </motion.div>
         ) : (

@@ -75,12 +75,26 @@ const dynamicFields: Record<string, FieldConfig[]> = {
   data: [{ type: 'dropdown', placeholder: 'Hệ thống ERP/Kế toán đang dùng?', options: ['SAP', 'Oracle', 'Bravo', 'Khác', 'Chưa có'] }],
 };
 
+function parseNumber(value?: string): number {
+  if (!value) return 0;
+  const n = parseInt(value.replace(/[^0-9]/g, ''), 10);
+  return Number.isNaN(n) ? 0 : n;
+}
+
+function formatCurrency(n: number): string {
+  if (n <= 0) return '0 đồng';
+  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)} tỷ đồng`;
+  if (n >= 1_000_000) return `${Math.round(n / 1_000_000)} triệu đồng`;
+  return `${n.toLocaleString('vi-VN')} đồng`;
+}
+
 export default function LogicSection() {
   const [activeTab, setActiveTab] = useState(0);
   const [step, setStep] = useState(1);
   const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
   const [dynValues, setDynValues] = useState<Record<string, string>>({});
   const [contact, setContact] = useState({ name: '', company: '', phone: '', email: '' });
+  const [showResult, setShowResult] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -122,13 +136,32 @@ export default function LogicSection() {
       if (!res.ok || data.error) {
         throw new Error(data.error || 'Gửi thông tin thất bại.');
       }
-      setSubmitted(true);
+      setShowResult(true);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Đã có lỗi xảy ra, vui lòng thử lại.');
     } finally {
       setSubmitting(false);
     }
   }
+
+  const pgCount = parseNumber(dynValues['pg-Số lượng PG/PB:']);
+  const pgCost = parseNumber(dynValues['pg-Chi phí/người/tháng (VNĐ):']);
+  const pgWasteAnnual = pgCount * pgCost * 12 * 0.2;
+
+  const retailBudget = parseNumber(dynValues['retail-Ngân sách Trade MKT/Loyalty/năm (VNĐ):']);
+  const retailWasteAnnual = retailBudget * 0.15;
+
+  const totalWasteAnnual =
+    (selectedProblems.includes('pg') ? pgWasteAnnual : 0) +
+    (selectedProblems.includes('retail') ? retailWasteAnnual : 0);
+
+  const problemInsights: Record<string, string> = {
+    visit: `${dynValues['visit-Số lượng NV Sales ước tính:'] || 'Đội ngũ'} nhân viên Sales đang vận hành thiếu công cụ giám sát lộ trình real-time — tiềm ẩn thất thoát năng suất viếng thăm.`,
+    pg: `${pgCount || 0} PG/PB, chi phí ${formatCurrency(pgCost)}/người/tháng — ước tính khoảng 20% ngân sách khó đo lường hiệu quả, tương đương ${formatCurrency(pgWasteAnnual)}/năm.`,
+    stock: `${dynValues['stock-Số lượng SKU:'] || 0} SKU trên ${dynValues['stock-Số Nhà phân phối / Kho:'] || 0} kho/NPP — rủi ro lệch tồn và out-of-stock tại điểm bán, ảnh hưởng trực tiếp doanh số.`,
+    retail: `Ngân sách Trade MKT/Loyalty ${formatCurrency(retailBudget)}/năm — ước tính khoảng 15% chưa được kiểm soát chặt chẽ, tương đương ${formatCurrency(retailWasteAnnual)}/năm.`,
+    data: `Hệ thống ${dynValues['data-Hệ thống ERP/Kế toán đang dùng?'] || 'hiện tại'} chưa đồng bộ real-time với vận hành — báo cáo chậm trễ, khó ra quyết định kịp thời.`,
+  };
 
   return (
     <SectionWrapper id="solution">
@@ -294,8 +327,63 @@ export default function LogicSection() {
               </div>
               <h3 className="text-lg font-semibold text-slate-900 mb-2">Cảm ơn Anh/Chị!</h3>
               <p className="text-slate-500 max-w-md mx-auto text-sm leading-relaxed">
-                Chúng tôi đã tiếp nhận thông số vận hành. Khối chuyên gia HQSOFT đang xử lý dữ liệu và sẽ gửi báo cáo dự toán qua Email trong thời gian sớm nhất.
+                Chuyên gia HQSOFT sẽ liên hệ quý khách trong thời gian sớm nhất. Chân thành cảm ơn quý khách đã tin tưởng và lựa chọn HQSOFT trên hành trình chuyển đổi số.
               </p>
+            </motion.div>
+          ) : showResult ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="rounded-3xl p-6 sm:p-8"
+              style={{ background: 'rgba(255,255,255,0.97)', boxShadow: '0 32px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.12)' }}
+            >
+              <div className="text-center mb-6">
+                <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-1">Kết Quả Sơ Bộ Dự Toán Vận Hành</h3>
+                <p className="text-slate-500 text-sm">Dựa trên thông tin bạn vừa cung cấp</p>
+              </div>
+
+              {totalWasteAnnual > 0 && (
+                <div className="text-center mb-6 py-5 rounded-2xl bg-blue-50 border border-blue-100">
+                  <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold mb-1">Ước tính thất thoát tiềm ẩn</p>
+                  <p className="text-3xl font-extrabold text-blue-700">
+                    {formatCurrency(totalWasteAnnual)}<span className="text-base font-semibold text-blue-500">/năm</span>
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-3 mb-6">
+                {selectedProblems.map((id) => {
+                  const card = problemCards.find((c) => c.id === id);
+                  if (!card) return null;
+                  const Icon = card.icon;
+                  return (
+                    <div key={id} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                        <Icon size={14} className="text-blue-600" strokeWidth={1.5} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-800">{card.label}</p>
+                        <p className="text-[12px] text-slate-500 mt-0.5 leading-snug">{problemInsights[id]}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <p className="text-[11px] text-slate-400 text-center leading-relaxed mb-5">
+                * Số liệu trên mang tính ước tính sơ bộ dựa trên benchmark ngành bán lẻ/phân phối, chưa phản ánh chính xác 100% tình hình thực tế. Chuyên gia HQSOFT sẽ phân tích chi tiết và đưa ra con số cụ thể theo đặc thù doanh nghiệp bạn.
+              </p>
+
+              <button
+                onClick={() => setSubmitted(true)}
+                className="cta-primary w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm"
+              >
+                Đặt lịch tư vấn cùng chuyên gia
+              </button>
             </motion.div>
           ) : (
             <motion.div 

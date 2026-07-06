@@ -57,7 +57,7 @@ export default function PopupForm({ onClose }: Props) {
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-slate-900 mb-2">Đã nhận thông tin!</h3>
-            <p className="text-slate-500 text-sm">Chuyên gia HQSOFT sẽ liên hệ với bạn trong 3 – 5 ngày làm việc.</p>
+            <p className="text-slate-500 text-sm leading-relaxed">Chuyên gia HQSOFT sẽ liên hệ quý khách trong thời gian sớm nhất. Chân thành cảm ơn quý khách đã tin tưởng và lựa chọn HQSOFT trên hành trình chuyển đổi số.</p>
           </div>
         ) : (
           <>
