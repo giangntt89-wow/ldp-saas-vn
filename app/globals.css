@@ -247,6 +247,17 @@ body {
   }
 }
 
+@keyframes ai-scan-move {
+  0% { top: 8px; opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: calc(100% - 10px); opacity: 0; }
+}
+
+@keyframes ai-flash {
+  0% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+
 /* ================================================================
    ICON POPUP – Sequential pop-up infinite loop (Hero Section)
    ================================================================ */
