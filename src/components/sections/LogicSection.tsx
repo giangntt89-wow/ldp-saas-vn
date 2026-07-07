@@ -156,18 +156,63 @@ export default function LogicSection() {
   const retailBudget = parseNumber(dynValues['retail-Ngân sách Trade MKT/Loyalty/năm (VNĐ):']);
   const retailWasteAnnual = retailBudget * 0.15;
 
+  // visit: benchmark chi phí di chuyển ~4tr/người/tháng, 25% không tối ưu
+  const visitCount = parseNumber(dynValues['visit-Số lượng NV Sales ước tính:']);
+  const visitWasteMonthly = visitCount * 4_000_000 * 0.25;
+
   const totalWasteAnnual =
     (selectedProblems.includes('pg') ? pgWasteAnnual : 0) +
     (selectedProblems.includes('retail') ? retailWasteAnnual : 0);
 
-  const problemInsights: Record<string, string> = {
-    visit: `${dynValues['visit-Số lượng NV Sales ước tính:'] || 'Đội ngũ'} nhân viên Sales đang vận hành thiếu công cụ giám sát lộ trình real-time — tiềm ẩn thất thoát năng suất viếng thăm.`,
-    pg: `${pgCount || 0} PG/PB, chi phí ${formatCurrency(pgCost)}/người/tháng — ước tính khoảng 20% ngân sách khó đo lường hiệu quả, tương đương ${formatCurrency(pgWasteAnnual)}/năm.`,
-    stock: `${dynValues['stock-Số lượng SKU:'] || 0} SKU trên ${dynValues['stock-Số Nhà phân phối / Kho:'] || 0} kho/NPP — rủi ro lệch tồn và out-of-stock tại điểm bán, ảnh hưởng trực tiếp doanh số.`,
-    retail: `Ngân sách Trade MKT/Loyalty ${formatCurrency(retailBudget)}/năm — ước tính khoảng 15% chưa được kiểm soát chặt chẽ, tương đương ${formatCurrency(retailWasteAnnual)}/năm.`,
-    data: `Hệ thống ${dynValues['data-Hệ thống ERP/Kế toán đang dùng?'] || 'hiện tại'} chưa đồng bộ real-time với vận hành — báo cáo chậm trễ, khó ra quyết định kịp thời.`,
-    omni: `${dynValues['omni-Số lượng kênh bán / đại lý đang vận hành:'] || 'Nhiều'} kênh bán (Online/Offline/Đại lý) đang vận hành rời rạc — dữ liệu đơn hàng, tồn kho khó đồng bộ real-time giữa các kênh, ảnh hưởng trải nghiệm khách hàng.`,
+  function formatCompact(n: number): string {
+    if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)} tỷ`;
+    if (n >= 1_000_000) return `${Math.round(n / 1_000_000)} tr`;
+    return n.toLocaleString('vi-VN');
+  }
+
+  const problemStats: Record<string, { value: string; unit: string; sublabel: string; warning: string }> = {
+    visit: {
+      value: visitCount > 0 ? `~${formatCompact(visitWasteMonthly)}` : '~25%',
+      unit: visitCount > 0 ? '/tháng' : 'thất thoát',
+      sublabel: 'chi phí di chuyển không tối ưu',
+      warning: 'Lộ trình Sales không kiểm soát được',
+    },
+    pg: {
+      value: pgWasteAnnual > 0 ? `~${formatCompact(pgWasteAnnual)}` : '~20%',
+      unit: pgWasteAnnual > 0 ? '/năm' : 'ROI khó đo',
+      sublabel: 'ngân sách PG/PB khó đo lường hiệu quả',
+      warning: 'Ngân sách PG chạy thiếu KPI rõ ràng',
+    },
+    stock: {
+      value: dynValues['stock-Số lượng SKU:'] ? `${dynValues['stock-Số lượng SKU:']} SKU` : 'Đa SKU',
+      unit: '',
+      sublabel: 'rủi ro out-of-stock tại điểm bán',
+      warning: 'Mất doanh số trực tiếp tại quầy',
+    },
+    retail: {
+      value: retailWasteAnnual > 0 ? `~${formatCompact(retailWasteAnnual)}` : '~15%',
+      unit: retailWasteAnnual > 0 ? '/năm' : 'rò rỉ',
+      sublabel: 'ngân sách Trade MKT chưa kiểm soát chặt',
+      warning: 'Rò rỉ ngân sách kênh bán lẻ',
+    },
+    data: {
+      value: '15–20%',
+      unit: '',
+      sublabel: 'cơ hội bán hàng bị bỏ lỡ/tháng',
+      warning: 'Báo cáo chậm → quyết định không kịp thời',
+    },
+    omni: {
+      value: dynValues['omni-Số lượng kênh bán / đại lý đang vận hành:'] ? `${dynValues['omni-Số lượng kênh bán / đại lý đang vận hành:']} kênh` : 'Đa kênh',
+      unit: '',
+      sublabel: 'kênh vận hành rời rạc, khó đồng bộ',
+      warning: 'Đơn hàng, tồn kho không đồng bộ real-time',
+    },
   };
+
+  const totalCards = selectedProblems.length + 1;
+  const gridCols = totalCards <= 4 ? 2 : 3;
+  const isLastAlone = totalCards % gridCols === 1;
+  const colWidth = gridCols === 2 ? 'calc(50% - 4px)' : 'calc(33.333% - 6px)';
 
   return (
     <SectionWrapper id="solution">
@@ -430,67 +475,96 @@ export default function LogicSection() {
         style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0,0,0,0.6)' }}
         onClick={(e) => e.target === e.currentTarget && setShowResult(false)}
       >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 sm:p-8 relative"
-        >
-          <button
-            onClick={() => setShowResult(false)}
-            className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 transition-colors"
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="bg-white rounded-3xl shadow-2xl w-full max-h-[90vh] overflow-y-auto p-6 relative"
+            style={{ maxWidth: gridCols === 3 ? '600px' : '480px' }}
           >
-            <X size={20} />
-          </button>
+            <button
+              onClick={() => setShowResult(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 transition-colors"
+            >
+              <X size={20} />
+            </button>
 
-          <div className="text-center mb-6">
-            <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            <div className="text-center mb-5">
+              <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              </div>
+              <h3 className="text-base font-semibold text-slate-900 mb-1">Kết quả sơ bộ dự toán vận hành</h3>
+              <p className="text-slate-400 text-xs">Dựa trên thông tin bạn vừa cung cấp</p>
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-1">Kết Quả Sơ Bộ Dự Toán Vận Hành</h3>
-            <p className="text-slate-500 text-sm">Dựa trên thông tin bạn vừa cung cấp</p>
-          </div>
 
-          {totalWasteAnnual > 0 && (
-            <div className="text-center mb-6 py-5 rounded-2xl bg-blue-50 border border-blue-100">
-              <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold mb-1">Ước tính thất thoát tiềm ẩn</p>
-              <p className="text-3xl font-extrabold text-blue-700">
-                {formatCurrency(totalWasteAnnual)}<span className="text-base font-semibold text-blue-500">/năm</span>
-              </p>
-            </div>
-          )}
+            {/* Dynamic grid: problem cards + waste badge */}
+            <div
+              className="mb-4"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
+                gap: '8px',
+              }}
+            >
+              {selectedProblems.map((id) => {
+                const card = problemCards.find((c) => c.id === id);
+                if (!card) return null;
+                const Icon = card.icon;
+                const stat = problemStats[id];
+                return (
+                  <div key={id} className="min-w-0 bg-slate-50 border border-slate-100 rounded-xl p-3 flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-md bg-blue-50 flex items-center justify-center shrink-0">
+                        <Icon size={12} className="text-blue-600" strokeWidth={1.5} />
+                      </div>
+                      <p className="text-[10px] font-semibold text-slate-500 truncate">{card.label}</p>
+                    </div>
+                    <div className="border-t border-slate-100 pt-1.5">
+                      <p className="text-base font-semibold text-blue-600 leading-none mb-0.5">
+                        {stat.value}{stat.unit && <span className="text-[10px] font-normal text-blue-400 ml-0.5">{stat.unit}</span>}
+                      </p>
+                      <p className="text-[10px] text-slate-400 leading-snug">{stat.sublabel}</p>
+                    </div>
+                    <div className="bg-amber-50 rounded px-1.5 py-1">
+                      <p className="text-[9px] text-amber-700 leading-snug truncate">{stat.warning}</p>
+                    </div>
+                  </div>
+                );
+              })}
 
-          <div className="space-y-3 mb-6">
-            {selectedProblems.map((id) => {
-              const card = problemCards.find((c) => c.id === id);
-              if (!card) return null;
-              const Icon = card.icon;
-              return (
-                <div key={id} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
-                    <Icon size={14} className="text-blue-600" strokeWidth={1.5} />
+              {/* Waste badge — always last in grid */}
+              <div
+                className="min-w-0 bg-blue-600 rounded-xl p-3 flex flex-col gap-1.5"
+                style={isLastAlone ? { gridColumn: '1 / -1', maxWidth: colWidth, margin: '0 auto', width: '100%' } : {}}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                    <TrendingUp size={12} className="text-white" strokeWidth={1.5} />
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800">{card.label}</p>
-                    <p className="text-[12px] text-slate-500 mt-0.5 leading-snug">{problemInsights[id]}</p>
-                  </div>
+                  <p className="text-[10px] font-semibold text-blue-100 truncate">Ước tính thất thoát/năm</p>
                 </div>
-              );
-            })}
-          </div>
+                <div className="border-t pt-1.5" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
+                  <p className="text-base font-semibold text-white leading-none mb-0.5">
+                    {totalWasteAnnual > 0 ? `~${formatCompact(totalWasteAnnual)}` : 'Xem chi tiết'}
+                    {totalWasteAnnual > 0 && <span className="text-[10px] font-normal ml-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>VNĐ</span>}
+                  </p>
+                  <p className="text-[10px] leading-snug" style={{ color: 'rgba(255,255,255,0.65)' }}>tổng ước tính tiềm ẩn</p>
+                </div>
+              </div>
+            </div>
 
-          <p className="text-[11px] text-slate-400 text-center leading-relaxed mb-5">
-            * Số liệu trên mang tính ước tính sơ bộ dựa trên benchmark ngành bán lẻ/phân phối, chưa phản ánh chính xác 100% tình hình thực tế. Chuyên gia HQSOFT sẽ phân tích chi tiết và đưa ra con số cụ thể theo đặc thù doanh nghiệp bạn.
-          </p>
+            <p className="text-[10px] text-slate-400 text-center leading-relaxed mb-4">
+              * Số liệu ước tính sơ bộ theo benchmark ngành bán lẻ/phân phối. Để cải thiện hiệu quả vận hành, chuyên gia HQSOFT sẵn sàng phân tích và đề xuất lộ trình phù hợp với doanh nghiệp bạn.
+            </p>
 
-          <button
-            onClick={() => { setShowResult(false); setSubmitted(true); }}
-            className="cta-primary w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm"
-          >
-            Đặt lịch tư vấn cùng chuyên gia
-          </button>
-        </motion.div>
-      </div>
+            <button
+              onClick={() => { setShowResult(false); setSubmitted(true); }}
+              className="cta-primary w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm"
+            >
+              Đặt lịch tư vấn để lựa chọn giải pháp tối ưu
+            </button>
+          </motion.div>
+        </div>
     )}
     </SectionWrapper>
   );
